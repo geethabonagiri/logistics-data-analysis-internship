@@ -1,0 +1,54 @@
+
+import pandas as pd
+import numpy as np
+
+np.random.seed(42)
+n = 250
+
+distance = np.random.randint(20, 1200, n)
+weight = np.round(np.random.uniform(1, 1000, n), 2)
+traffic = np.random.choice(
+    ["Low", "Medium", "High"], n, p=[0.3, 0.45, 0.25]
+)
+weather = np.random.choice(
+    ["Clear", "Rainy", "Foggy"], n, p=[0.65, 0.25, 0.10]
+)
+vehicle = np.random.choice(
+    ["Van", "Truck", "Bike"], n, p=[0.45, 0.35, 0.20]
+)
+
+speed = np.where(vehicle == "Bike", 35,
+        np.where(vehicle == "Van", 48, 55))
+
+traffic_factor = np.select(
+    [traffic == "Low", traffic == "Medium", traffic == "High"],
+    [1.0, 1.25, 1.6]
+)
+weather_factor = np.select(
+    [weather == "Clear", weather == "Rainy", weather == "Foggy"],
+    [1.0, 1.15, 1.3]
+)
+
+hours = np.maximum(
+    distance / speed * traffic_factor * weather_factor
+    + np.random.normal(0, 0.8, n),
+    0.5
+)
+
+status = np.where(
+    hours > distance / speed * 1.2, "Delayed", "On Time"
+)
+
+df = pd.DataFrame({
+    "Shipment_ID": [f"SH{i:04d}" for i in range(1, n + 1)],
+    "Distance_km": distance,
+    "Weight_kg": weight,
+    "Traffic_Level": traffic,
+    "Weather_Condition": weather,
+    "Vehicle_Type": vehicle,
+    "Delivery_Time_Hours": np.round(hours, 2),
+    "Delivery_Status": status
+})
+
+df.to_csv("week3_logistics_hypothetical_dataset.csv", index=False)
+print("CSV created with", len(df), "records!")
